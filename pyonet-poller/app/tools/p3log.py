@@ -24,22 +24,28 @@ class P3Log:
         self.logger.addHandler(handler)
         self.logger.setLevel(logging.INFO) # Will not log normal logs without this
 
+    def add_timestamp(self, message):
+        return f"{time.strftime('%Y-%m-%d %H:%M:%S')} - {message}"
+
     def log(self, message):       
         if self.debug:
             print(message)
-        self.logger.info(str(message))    
+        self.logger.info(self.add_timestamp(message))    
 
     def log_success(self, message):        
-        console.print(f"[bold green][SUCCESS] {message}")
-        self.logger.info(str(message))
+        message = f"[SUCCESS] {message}"
+        console.print(f"[bold green]{message}")
+        self.logger.info(self.add_timestamp(message))
 
     def log_warning(self, message):        
-        console.print(f"[bold yellow][WARNING] {message}")
-        self.logger.warning(str(message))
+        message = f"[WARNING] {message}"
+        console.print(f"[bold yellow]{message}")
+        self.logger.warning(self.add_timestamp(message))
 
-    def log_error(self, message):        
-        console.print(f"[bold red][ERROR] {message}")
-        self.logger.error(str(message))
+    def log_error(self, message):  
+        message = f"[ERROR] {message}"      
+        console.print(f"[bold red]{message}")
+        self.logger.error(self.add_timestamp(message))
 
 
 if __name__ == '__main__':
