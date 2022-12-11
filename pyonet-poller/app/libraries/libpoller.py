@@ -8,16 +8,24 @@ class Poller:
         self.poll_task = None        
         self.devices = []
     
-    def test_access_token(self):
+    async def test_access_token(self):        
         try:
             r = requests.get(f"{PYONET_API_URL}/auth/test/api_key", headers={"Authorization": f"{ACCESS_TOKEN}"})
-            r.raise_for_status()
+            print(r)
+            # r.raise_for_status()
             self.p3log.log_success("Successfully authenticated with Pyonet-API")
+            return True
+        except requests.exceptions.ConnectionError as ce:
+            self.p3log.log_error(f"Could not connect to Pyonet-API. Suggested: check if Pyonet-API is running and the PYONET_API_URL is correctly configured in the .env. Error: {str(ce)}")
+            return False
         except Exception as e:
             self.p3log.log_error(f"ACCESS_TOKEN is invalid. Suggested: generate a new access token from the Pyonet-Dashboard interface and add it to the .env file. {str(e)}")
+            return False
 
     
-    async def init_polling(self):        
+    async def init_polling(self):     
+        ''' Retrieves devices from Pyonet-API and starts the polling loop
+        '''   
         try: 
             r = requests.get(f"{PYONET_API_URL}/poller/devices", headers={"Authorization": ACCESS_TOKEN})
             r.raise_for_status()            
@@ -34,6 +42,8 @@ class Poller:
 
     # Main Polling Loop
     async def start_poll_loop(self):
+        ''' Polls devices in a loop
+        '''
         try:
             for i in range(10):
                 await self.poll_devices()
