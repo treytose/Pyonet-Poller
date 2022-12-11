@@ -5,7 +5,7 @@ from app.tools.p3log import P3Log
 class Poller:
     def __init__(self):
         self.p3log = P3Log("poller.log")
-        self.loop_enabled = True
+        self.poll_task = None        
         self.devices = []
     
     def test_access_token(self):
@@ -25,7 +25,8 @@ class Poller:
             self.p3log.log_success(f"Successfully retrieved {len(self.devices)} devices from Pyonet-API")
 
             # Start polling loop
-            await self.start_poll_loop()
+            loop = asyncio.get_event_loop()
+            self.poll_task = loop.create_task(self.start_poll_loop())               
 
         except Exception as e:
             self.p3log.log_error(f"Initialization failed. Error: {str(e)}")
@@ -34,13 +35,11 @@ class Poller:
     # Main Polling Loop
     async def start_poll_loop(self):
         try:
-            while self.loop_enabled:            
+            for i in range(10):
                 await self.poll_devices()
-                await asyncio.sleep(1)
-
-            return True
+                await asyncio.sleep(1)            
         except asyncio.CancelledError as e:
-            self.p3log.log_error(f"Polling loop exited: {str(e)}")
+            self.p3log.log(f"Polling loop exited")
             return False
 
     async def poll_devices(self):

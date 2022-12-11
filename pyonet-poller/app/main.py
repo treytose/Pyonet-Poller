@@ -1,4 +1,4 @@
-import signal, sys
+import signal, sys, asyncio
 from fastapi import FastAPI, BackgroundTasks
 from app.libraries.libpoller import Poller
 from . import db
@@ -8,7 +8,8 @@ from .routers import auth
 
 app = FastAPI()
 oPoller = Poller()
-background_tasks = BackgroundTasks()
+
+poll_task = None
 
 @app.get("/hello")
 async def hello():
@@ -19,21 +20,19 @@ async def hello():
 # Stop the background task when Ctrl+C is pressed
 def sigint_handler(signum, frame):    
     oPoller.loop_enabled = False    
-    
+
 @app.on_event("startup")
 async def startup_event():
     await db.connect()
-    signal.signal(signal.SIGINT, sigint_handler)
-
-    # Init Poller 
-    oPoller.test_access_token()
-    await oPoller.init_polling()
+    oPoller.test_access_token()   
+    await oPoller.init_polling()  
     
 
 @app.on_event("shutdown")
 async def shutdown_event():
     print("Shutting down Pyonet-Poller")
     await db.disconnect()
+    oPoller.poll_task.cancel()
     
 
 # register routers #
