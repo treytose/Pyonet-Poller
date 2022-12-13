@@ -10,13 +10,12 @@ class Poller:
     
     async def test_access_token(self):        
         try:
-            r = requests.get(f"{PYONET_API_URL}/auth/test/api_key", headers={"Authorization": f"{ACCESS_TOKEN}"})
-            print(r)
-            # r.raise_for_status()
+            r = requests.get(f"{PYONET_API_URL}/auth/test/api_key", headers={"Authorization": f"{ACCESS_TOKEN}"})            
+            r.raise_for_status()
             self.p3log.log_success("Successfully authenticated with Pyonet-API")
             return True
         except requests.exceptions.ConnectionError as ce:
-            self.p3log.log_error(f"Could not connect to Pyonet-API. Suggested: check if Pyonet-API is running and the PYONET_API_URL is correctly configured in the .env. Error: {str(ce)}")
+            self.p3log.log_warning(f"Could not connect to Pyonet-API. Suggested: check if Pyonet-API is running and the PYONET_API_URL is correctly configured in the .env. Error: {str(ce)}")
             return False
         except Exception as e:
             self.p3log.log_error(f"ACCESS_TOKEN is invalid. Suggested: generate a new access token from the Pyonet-Dashboard interface and add it to the .env file. {str(e)}")

@@ -27,11 +27,11 @@ def sigint_handler(signum, frame):
 async def startup_event():
     await db.connect()
     success = await oPoller.test_access_token()       
-    if not success:
-        oLogger.log_error("Could not authenticate with Pyonet-API. Exiting...")
-        os.kill(psutil.Process(os.getpid()).ppid(), signal.SIGINT)
-    else:        
-        await oPoller.init_polling()  
+    # if not success:
+    #     oLogger.log_error("Could not authenticate with Pyonet-API. Exiting...")
+    #     os.kill(psutil.Process(os.getpid()).ppid(), signal.SIGINT)
+    # else:        
+    #     await oPoller.init_polling()  
     
 
 @app.on_event("shutdown")

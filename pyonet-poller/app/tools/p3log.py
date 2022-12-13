@@ -32,6 +32,11 @@ class P3Log:
             print(message)
         self.logger.info(self.add_timestamp(message))    
 
+    def log_info(self, message):        
+        message = f"[INFO] {message}"
+        console.print(f"[bold blue]{message}")
+        self.logger.info(self.add_timestamp(message))
+
     def log_success(self, message):        
         message = f"[SUCCESS] {message}"
         console.print(f"[bold green]{message}")
