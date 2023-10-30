@@ -1,2 +1,1 @@
-# Pyonet-Poller
-A python polling application used in the Pyonet monitoring application
+run development environment with: uvicorn app.main:app --reload
