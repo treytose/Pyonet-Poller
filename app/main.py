@@ -1,6 +1,7 @@
 import sys, os, signal, psutil, secrets, socket
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, Depends, BackgroundTasks
 from app.libraries.libpoller import Poller
+from app.dependencies import verify_api_key
 from app.tools.p3log import P3Log
 from rich import print
 from . import db, API_KEY
@@ -66,7 +67,6 @@ async def startup_event():
         if poller_object.name != f"poller-{hostname}":
             print(f"[bold yellow]WARNING: API_KEY is set but does not match hostname.\nPlease ensure the .env file does not contain a copy and pasted API_KEY from another poller.\nIf you are sure this is not the case, please delete the API_KEY from the .env file and restart Pyonet-Poller.")
             
-
 @app.on_event("shutdown")
 async def shutdown_event():
     print("Shutting down Pyonet-Poller")
@@ -74,6 +74,26 @@ async def shutdown_event():
     if oPoller.poll_task:
         oPoller.poll_task.cancel()
     
+
+@app.get("/poller/status", dependencies=[Depends(verify_api_key)])
+async def poller_status():
+    global poll_task
+    if oPoller.poll_task:
+        print("RUNNING")
+        return {"status": "running"}
+    else:
+        print("IDLE")
+        return {"status": "idle"}
+
+@app.post("/poller/start", dependencies=[Depends(verify_api_key)])
+async def start_poller(background_tasks: BackgroundTasks):
+    global poll_task
+    if oPoller.poll_task:
+        return {"status": "Poller already running"}
+    else:        
+        await oPoller.init_polling()        
+        background_tasks.add_task(oPoller.start_polling)                
+        return {"status": "Poller started"}
 
 # register routers #
 app.include_router(auth.router)
