@@ -14,8 +14,6 @@ app = FastAPI()
 oPoller = Poller()
 oLogger = P3Log("main")
 
-poll_task = None
-
 @app.get("/hello")
 async def hello():
     return "Pyonet-Poller"
@@ -71,29 +69,37 @@ async def startup_event():
 async def shutdown_event():
     print("Shutting down Pyonet-Poller")
     await db.disconnect()
-    if oPoller.poll_task:
-        oPoller.poll_task.cancel()
-    
 
 @app.get("/poller/status", dependencies=[Depends(verify_api_key)])
 async def poller_status():
-    global poll_task
-    if oPoller.poll_task:
-        print("RUNNING")
+    if oPoller.running:
         return {"status": "running"}
     else:
-        print("IDLE")
         return {"status": "idle"}
 
 @app.post("/poller/start", dependencies=[Depends(verify_api_key)])
 async def start_poller(background_tasks: BackgroundTasks):
-    global poll_task
-    if oPoller.poll_task:
+    if oPoller.running:
         return {"status": "Poller already running"}
     else:        
         await oPoller.init_polling()        
         background_tasks.add_task(oPoller.start_polling)                
         return {"status": "Poller started"}
+
+@app.post("/poller/stop", dependencies=[Depends(verify_api_key)])
+async def stop_poller():
+    await oPoller.stop_polling()
+    return {"status": "Poller stopped"}    
+
+@app.post("/poller/device/update/<deviceid>", dependencies=[Depends(verify_api_key)])
+async def update_device(deviceid: int):
+    await oPoller.update_device(deviceid)
+    return {"status": "Device updated"}
+
+@app.post("/poller/device/remove/<deviceid>", dependencies=[Depends(verify_api_key)])
+async def remove_device(deviceid: int):
+    await oPoller.remove_device(deviceid)
+    return {"status": "Device removed"}
 
 # register routers #
 app.include_router(auth.router)

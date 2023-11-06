@@ -10,3 +10,7 @@ oUtil = Util()
 @router.get("/poller/scan-interfaces")
 async def scan_interfaces(deviceid: int, api_key = Depends(verify_api_key)):
   return await oUtil.scan_device_interfaces(deviceid)
+
+@router.get("/poller/scan-storage")
+async def scan_storage(deviceid: int, api_key = Depends(verify_api_key)):
+  return await oUtil.scan_device_storage(deviceid)
